@@ -1,5 +1,5 @@
 ---
-title: "Bey2ollak Project"
+title: "Bey2ollak Data Analysis Project"
 output: html_document
 ---
 ```{r}
@@ -7,15 +7,16 @@ library(ggplot2)
 library(dplyr)
 ```
 
-Data Processing:
-
+# Data Processing:
 
 ```{r}
   file <- "~/Downloads/all-semi-unique.csv"
   all_data <- read.csv(file, encoding="UTF-8")
 ```
 
-Data Cleaning & Preparation:
+# Data Cleaning & Preparation:
+
+
 ```{r}
 factor(all_data$ad.lid)
 
@@ -37,19 +38,21 @@ ggplot(unique_data) + geom_bar(aes(x=rd.stid,y= rd.new), stat="identity")
 
 ```
 
-Time Formats and columns:
+## Time Formats and columns:
 ```{r}
   unique_data$date_time_formatted = strptime(unique_data$crawl_date, "%a %b %d %H:%M:%S UTC %Y", tz="UTC")
 unique_data$date_time_formatted = unique_data$date_time_formatted - (unique_data$rd.rp.hr*60*60 + unique_data$rd.rp.mn*60)
 ```
 
-Cairo Time:
+## Cairo Time:
 ```{r}
   unique_data$date_time_formatted = unique_data$date_time_formatted + 2*60*60
   unique_data$report_hour = as.numeric(unique_data$date_time_formatted %>% format("%H"))
   unique_data$report_min = as.numeric(unique_data$date_time_formatted %>% format("%M"))
 ```
 
+# Plotting & Comprehension:
+```{r}
 ggplot(unique_data) + geom_point(aes(x=rd.stid,y= report_hour), stat="identity")
 
 ggplot() + geom_histogram(data = unique_data, aes(x=report_hour))
@@ -60,28 +63,34 @@ ggplot(unique_data)+geom_point(aes(unique_data$report_hour, unique_data$rd.stid,
 
  makram <- unique_data %>% filter(rd.ri==678)
 ggplot(makram,aes(y = makram$rd.stid, x = makram$report_hour)) + geom_point()
-
-
 unique_data$report_day =  weekdays((unique_data$date_time_formatted))
-
 ggplot(unique_data,aes(y = rd.stid, x = report_day)) + geom_point()
 
 
+```
+
+
+##Frequency of reports across weekdays:
+```{r}
 days_grouped <- data.frame(table(unique_data$report_day))
 ggplot(days_grouped,aes(y = Freq, x = Var1)) + geom_point()
+```
 
+##Hypothesis: Frequency of Specific Congestion Reports are correlated with the total number of reports across time
 
+The behaviour of the frequency of high congestion reports(with status ID of 4 or 5), low congestion reports(with status ID of 1 or 2) and question reports(with status ID of 10) across time
+
+Frequency of reports across weekdays:
+```{r}
 hours_grouped <- data.frame(table(unique_data$report_hour))
 ggplot(hours_grouped,aes(y = Freq, x = Var1)) + geom_point()
-
 
 congested_data <- unique_data %>% filter(rd.rp.stid >=4 & rd.rp.stid <= 5)
 hours_grouped_congested <- data.frame(table(congested_data$report_hour))
 
-
 ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_congested,aes(y = Freq, x = Var1), color = "red")
 
-questions_data <- unique_data %>% filter(rd.rp.stid ==10)
+questions_data <- unique_data %>% filtecor(rd.rp.stid ==10)
 hours_grouped_questions <- data.frame(table(questions_data$report_hour))
 
 ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_questions,aes(y = Freq, x = Var1), color = "red")
@@ -91,8 +100,20 @@ hours_grouped_clear <- data.frame(table(clear_data$report_hour))
 
 ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_congested,aes(y = Freq, x = Var1), color = "red") + geom_point(data = hours_grouped_clear ,aes(y = Freq, x = Var1), color = "green") + geom_point(data = hours_grouped_questions,aes(y = Freq, x = Var1), color = "blue")
 
+cor(hours_grouped$Freq,hours_grouped_congested$Freq)
+cor(hours_grouped$Freq,hours_grouped_clear$Freq)
+cor(hours_grouped$Freq,hours_grouped_questions$Freq)
 
+```
+- The first hours of the day usually has more question type reports than the other types.
+- Rush hours increases congestion reports of status ids 1,2,4,5
+- za7ma & mafeesh amal are more likely to be reported from 5 to 7 pm
 
+##Hypothesis: Studying user behaviour to look for abnormalities
+- An example of that is when the status id of a road is 1 and a user adds a report with a status id of 5.
+- This might indicate that the user is giving a dishonest report or not.
+- However detecting this behaviour more than once across 2 weeks for a certain user makes it useful to review his reports to avoid misbehaved users.
+```{r}
 extreme_reports <- unique_data %>% filter(rd.stid <= 5 & rd.rp.stid <=5 & abs(rd.rp.stid - rd.stid) == 4)
 
 factor(extreme_reports$rd.rp.nm)
@@ -100,6 +121,14 @@ extreme_users <- data.frame(table(extreme_reports$rd.rp.nm))
 
 extreme_users <- data.frame(table(extreme_reports$rd.rp.nm)) %>% filter(Freq > 2)
 View(extreme_users)
+```
+
+- extreme users tables has the reporters who have given an extreme report more than 2 times.
+- The fact that bey2ollak GPS has the most of those extreme reports is good because it's a secure channel.
+- Fa3el Kheir is the second contributor which suggests the need for a way to verify the integrity of data coming from anonymous accounts
+- 2 users have given 6 extreme reports accross 2 weeks.
+
+
 
 
 
