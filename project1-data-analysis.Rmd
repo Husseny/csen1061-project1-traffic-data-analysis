@@ -10,8 +10,8 @@ library(dplyr)
 # Data Processing:
 
 ```{r}
-  file <- "~/Downloads/all-semi-unique.csv"
-  all_data <- read.csv(file, encoding="UTF-8")
+file <- "~/Downloads/all-semi-unique.csv"
+all_data <- read.csv(file, encoding="UTF-8")
 ```
 
 # Data Cleaning & Preparation:
@@ -40,15 +40,15 @@ ggplot(unique_data) + geom_bar(aes(x=rd.stid,y= rd.new), stat="identity")
 
 ## Time Formats and columns:
 ```{r}
-  unique_data$date_time_formatted = strptime(unique_data$crawl_date, "%a %b %d %H:%M:%S UTC %Y", tz="UTC")
+unique_data$date_time_formatted = strptime(unique_data$crawl_date, "%a %b %d %H:%M:%S UTC %Y", tz="UTC")
 unique_data$date_time_formatted = unique_data$date_time_formatted - (unique_data$rd.rp.hr*60*60 + unique_data$rd.rp.mn*60)
 ```
 
 ## Cairo Time:
 ```{r}
-  unique_data$date_time_formatted = unique_data$date_time_formatted + 2*60*60
-  unique_data$report_hour = as.numeric(unique_data$date_time_formatted %>% format("%H"))
-  unique_data$report_min = as.numeric(unique_data$date_time_formatted %>% format("%M"))
+unique_data$date_time_formatted = unique_data$date_time_formatted + 2*60*60
+unique_data$report_hour = as.numeric(unique_data$date_time_formatted %>% format("%H"))
+unique_data$report_min = as.numeric(unique_data$date_time_formatted %>% format("%M"))
 ```
 
 # Plotting & Comprehension:
@@ -61,11 +61,11 @@ ggplot() + geom_histogram(data = unique_data, aes(x=rd.stid))
 
 ggplot(unique_data)+geom_point(aes(unique_data$report_hour, unique_data$rd.stid, color=factor(unique_data$rd.stid)))
 
- makram <- unique_data %>% filter(rd.ri==678)
+makram <- unique_data %>% filter(rd.ri==678)
 ggplot(makram,aes(y = makram$rd.stid, x = makram$report_hour)) + geom_point()
+
 unique_data$report_day =  weekdays((unique_data$date_time_formatted))
 ggplot(unique_data,aes(y = rd.stid, x = report_day)) + geom_point()
-
 
 ```
 
@@ -78,7 +78,8 @@ ggplot(days_grouped,aes(y = Freq, x = Var1)) + geom_point()
 
 ##Hypothesis: Frequency of Specific Congestion Reports are correlated with the total number of reports across time
 
-The behaviour of the frequency of high congestion reports(with status ID of 4 or 5), low congestion reports(with status ID of 1 or 2) and question reports(with status ID of 10) across time
+- The behaviour of the frequency of high congestion reports(with status ID of 4 or 5), 
+low congestion reports(with status ID of 1 or 2) and question reports(with status ID of 10) across time.
 
 Frequency of reports across weekdays:
 ```{r}
