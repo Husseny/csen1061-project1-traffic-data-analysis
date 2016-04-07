@@ -1,0 +1,111 @@
+---
+title: "Bey2ollak Project"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+Data Processing:
+
+
+```{r}
+  file <- "~/Downloads/all-semi-unique.csv"
+  all_data <- read.csv(file, encoding="UTF-8")
+```
+
+Data Cleaning & Preparation:
+```{r}
+factor(all_data$ad.lid)
+
+keep <- c("crawl_date", "rd.nm", "rd.ri", "rd.stid", "rd.hr", "rd.mn", "rd.new", "rd.strq", "rd.cmrq", "rd.rp.nm", "rd.rp.hr", "rd.rp.mn", "rd.rp.stid", "rd.rp.cm", "rd.rp.cmid")
+cut_data <- all_data[keep]
+head(cut_data)
+
+cut_data %>% filter(rd.rp.cm == "mashy")
+cut_data %>% filter(rd.rp.cm == "lazeez")
+
+
+unique(cut_data$rd.rp.cmid) %>% length()
+
+unique_data = cut_data %>% filter(!duplicated(cut_data$rd.rp.cmid))
+View(unique_data)
+
+ggplot(unique_data) + geom_bar(aes(x=rd.stid))
+ggplot(unique_data) + geom_bar(aes(x=rd.stid,y= rd.new), stat="identity") 
+
+```
+
+Time Formats and columns:
+```{r}
+  unique_data$date_time_formatted = strptime(unique_data$crawl_date, "%a %b %d %H:%M:%S UTC %Y", tz="UTC")
+unique_data$date_time_formatted = unique_data$date_time_formatted - (unique_data$rd.rp.hr*60*60 + unique_data$rd.rp.mn*60)
+```
+
+Cairo Time:
+```{r}
+  unique_data$date_time_formatted = unique_data$date_time_formatted + 2*60*60
+  unique_data$report_hour = as.numeric(unique_data$date_time_formatted %>% format("%H"))
+  unique_data$report_min = as.numeric(unique_data$date_time_formatted %>% format("%M"))
+```
+
+ggplot(unique_data) + geom_point(aes(x=rd.stid,y= report_hour), stat="identity")
+
+ggplot() + geom_histogram(data = unique_data, aes(x=report_hour))
+
+ggplot() + geom_histogram(data = unique_data, aes(x=rd.stid))
+
+ggplot(unique_data)+geom_point(aes(unique_data$report_hour, unique_data$rd.stid, color=factor(unique_data$rd.stid)))
+
+ makram <- unique_data %>% filter(rd.ri==678)
+ggplot(makram,aes(y = makram$rd.stid, x = makram$report_hour)) + geom_point()
+
+
+unique_data$report_day =  weekdays((unique_data$date_time_formatted))
+
+ggplot(unique_data,aes(y = rd.stid, x = report_day)) + geom_point()
+
+
+days_grouped <- data.frame(table(unique_data$report_day))
+ggplot(days_grouped,aes(y = Freq, x = Var1)) + geom_point()
+
+
+hours_grouped <- data.frame(table(unique_data$report_hour))
+ggplot(hours_grouped,aes(y = Freq, x = Var1)) + geom_point()
+
+
+congested_data <- unique_data %>% filter(rd.rp.stid >=4 & rd.rp.stid <= 5)
+hours_grouped_congested <- data.frame(table(congested_data$report_hour))
+
+
+ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_congested,aes(y = Freq, x = Var1), color = "red")
+
+questions_data <- unique_data %>% filter(rd.rp.stid ==10)
+hours_grouped_questions <- data.frame(table(questions_data$report_hour))
+
+ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_questions,aes(y = Freq, x = Var1), color = "red")
+
+clear_data <- unique_data %>% filter(rd.rp.stid >=1 & rd.rp.stid <= 2)
+hours_grouped_clear <- data.frame(table(clear_data$report_hour))
+
+ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_congested,aes(y = Freq, x = Var1), color = "red") + geom_point(data = hours_grouped_clear ,aes(y = Freq, x = Var1), color = "green") + geom_point(data = hours_grouped_questions,aes(y = Freq, x = Var1), color = "blue")
+
+
+
+extreme_reports <- unique_data %>% filter(rd.stid <= 5 & rd.rp.stid <=5 & abs(rd.rp.stid - rd.stid) == 4)
+
+factor(extreme_reports$rd.rp.nm)
+extreme_users <- data.frame(table(extreme_reports$rd.rp.nm))
+
+extreme_users <- data.frame(table(extreme_reports$rd.rp.nm)) %>% filter(Freq > 2)
+View(extreme_users)
+
+
+
+salah_salem1_data <- unique_data %>% filter(rd.ri == 686 & rd.rp.stid >=4 & rd.rp.stid <= 5)
+salah_salem2_data <- unique_data %>% filter(rd.ri == 687 & rd.rp.stid >=4 & rd.rp.stid <= 5)
+salah_salem1 <- data.frame(table(salah_salem1_data$report_hour))
+salah_salem2 <- data.frame(table(salah_salem2_data$report_hour))
+ggplot() + geom_point(data = salah_salem1,aes(y = Freq, x = Var1)) + geom_point(data = salah_salem2,aes(y = Freq, x = Var1), color = "red")
+
