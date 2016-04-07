@@ -128,13 +128,14 @@ View(extreme_users)
 - Fa3el Kheir is the second contributor which suggests the need for a way to verify the integrity of data coming from anonymous accounts
 - 2 users have given 6 extreme reports accross 2 weeks.
 
-
-
-
-
+## Hypothesis: Connected Roads congestion hours(za7ma & mafeesh amal) are correlated
+- To test this I examined 2 connected roads: Salah Salem(Matar to Orouba) & Salah Salem(Orouba to 6th of October Bridge)
+```{r}
 salah_salem1_data <- unique_data %>% filter(rd.ri == 686 & rd.rp.stid >=4 & rd.rp.stid <= 5)
 salah_salem2_data <- unique_data %>% filter(rd.ri == 687 & rd.rp.stid >=4 & rd.rp.stid <= 5)
 salah_salem1 <- data.frame(table(salah_salem1_data$report_hour))
 salah_salem2 <- data.frame(table(salah_salem2_data$report_hour))
 ggplot() + geom_point(data = salah_salem1,aes(y = Freq, x = Var1)) + geom_point(data = salah_salem2,aes(y = Freq, x = Var1), color = "red")
+
+```
 
