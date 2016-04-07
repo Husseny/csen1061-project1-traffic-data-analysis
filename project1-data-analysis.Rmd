@@ -90,7 +90,7 @@ hours_grouped_congested <- data.frame(table(congested_data$report_hour))
 
 ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_congested,aes(y = Freq, x = Var1), color = "red")
 
-questions_data <- unique_data %>% filtecor(rd.rp.stid ==10)
+questions_data <- unique_data %>% filter(rd.rp.stid ==10)
 hours_grouped_questions <- data.frame(table(questions_data$report_hour))
 
 ggplot() + geom_point(data = hours_grouped,aes(y = Freq, x = Var1)) + geom_point(data = hours_grouped_questions,aes(y = Freq, x = Var1), color = "red")
